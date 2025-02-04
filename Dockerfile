@@ -1,39 +1,37 @@
-# syntax = docker/dockerfile:1
+# Usa a imagem do Node.js
+FROM node:18
 
-# Adjust NODE_VERSION as desired
-ARG NODE_VERSION=20.18.0
-FROM node:${NODE_VERSION}-slim AS base
-
-LABEL fly_launch_runtime="Node.js"
-
-# Node.js app lives here
+# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Set production environment
-ENV NODE_ENV="production"
+# Copia os arquivos do projeto para o container
+COPY package.json package-lock.json ./
+RUN npm install
 
-
-# Throw-away build stage to reduce size of final image
-FROM base AS build
-
-# Install packages needed to build node modules
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
-
-# Install node modules
-COPY package-lock.json package.json ./
-RUN npm ci
-
-# Copy application code
+# Copia o restante dos arquivos do projeto
 COPY . .
 
+# Instala as dependências do Puppeteer
+RUN apt-get update && apt-get install -y \
+    libatk1.0-0 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    libgbm-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Final stage for app image
-FROM base
+# Define a variável de ambiente para desativar o sandbox do Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Copy built application
-COPY --from=build /app /app
-
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD [ "npm", "run", "start" ]
+# Comando para rodar o serviço
+CMD ["node", "main.js"]
