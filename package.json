@@ -1,0 +1,15 @@
+{
+  "name": "services-bot",
+  "version": "1.0.0",
+  "description": "Bot para gerenciamento de serviços prestados",
+  "main": "main.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.26.0"
+  }
+}
